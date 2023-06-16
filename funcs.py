@@ -40,7 +40,7 @@ def matplotlib_imshow(
 
 
 def get_canvas(shape, color_code=(80, 80, 80)):
-    return np.full(shape, fill_value=color_code, dtype=np.uint8)
+    return np.full(shape[:2], fill_value=color_code, dtype=np.uint8)
 
 
 # ------------------------------------------------------------
