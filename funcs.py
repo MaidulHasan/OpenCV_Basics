@@ -35,12 +35,12 @@ def matplotlib_imshow(
 
 
 # ------------------------------------------------------------
-### Get grayscale canvas
+### Get grayscale canvas (2D)
 # ------------------------------------------------------------
 
 
-def get_canvas(shape, color_code=(80, 80, 80)):
-    return np.full(shape[:2], fill_value=color_code, dtype=np.uint8)
+def get_canvas(shape, color_code=(80)):
+    return np.full(shape, fill_value=color_code, dtype=np.uint8)
 
 
 # ------------------------------------------------------------
