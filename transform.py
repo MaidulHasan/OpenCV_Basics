@@ -3,36 +3,14 @@ import matplotlib.pyplot as plt
 import random
 import cv2 as cv
 from funcs import matplotlib_imshow
-import math
+
+import imutils
 
 
-def scale(img):
-    img_w, img_h = img.shape[:2]
-    image_center = (img_w / 2), (img_h / 2)
-
-    scale_factor = round(random.uniform(0.3, 1), 2)
-
-    transformation_matrix = cv.getRotationMatrix2D(image_center, 0, scale_factor)
-
-    scaled_img = cv.warpAffine(img, transformation_matrix, (img_w, img_h))
-    scaled_img_title = f"Scale factor: {scale_factor}"
-
-    return scaled_img, scaled_img_title
-
-
-def rotate(img):
-    img_w, img_h = img.shape[:2]
-    image_center = (img_w / 2), (img_h / 2)
-    diagonal = math.sqrt(img_h**2 + img_w**2)
-
-    rotation_angle = np.random.randint(10, 320)
-
-    transformation_matrix = cv.getRotationMatrix2D(image_center, rotation_angle, 1)
-
-    rotated_img = cv.warpAffine(img, transformation_matrix, (diagonal, diagonal))
-    rotated_img_title = f"Rotate (Angle (CCW): {rotation_angle})"
-
-    return rotated_img, rotated_img_title
+def find_contours(img):
+    thresh_val, thresh_img = cv.threshold(img, 120, 255, cv.THRESH_BINARY)
+    cnt, hier = cv.findContours(thresh_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+    return cnt
 
 
 def translate(img):
@@ -50,35 +28,99 @@ def translate(img):
     return translated_img, translated_img_title
 
 
+def scale(img):
+    img_w, img_h = img.shape[:2]
+    image_center = (img_w / 2), (img_h / 2)
+
+    scale_factor = round(random.uniform(0.6, 1), 2)
+
+    transformation_matrix = cv.getRotationMatrix2D(image_center, 0, scale_factor)
+
+    scaled_img = cv.warpAffine(img, transformation_matrix, (img_w, 2 * img_h))
+    scaled_img_title = f"Scale factor: {scale_factor}"
+
+    return scaled_img, scaled_img_title
+
+
+def rotate(img):
+    rotation_angle = np.random.randint(10, 320)
+
+    # under the hood, imutils.rotate_bound uses opencv to do this
+    rotated_img = imutils.rotate_bound(img, -rotation_angle)
+    rotated_img_title = f"Rotation Angle (CCW): {rotation_angle}"
+
+    return rotated_img, rotated_img_title
+
+
 def transform(
     img=None,
-    translate_img=True,
+    translate_img=False,
     scale_img=False,
     rotate_img=False,
-    plot_result=True,
+    translate_and_scale_img=False,
+    translate_and_rotate_img=False,
+    translate_scale_and_rotate_img=False,
 ):
     if img is None:
         print("Please provide valid image (Numpy Array).")
         exit()
 
+    if translate_img:
+        translated_img, translated_img_title = translate(img)
+        translated_img_cnt = find_contours(translated_img)[0]
+
+        return translated_img_cnt, translated_img_title
+
+    if translate_and_scale_img:
+        translated_img, translated_img_title = translate(img)
+        translated_and_scaled_img, scaled_img_title = scale(translated_img)
+
+        translated_and_scaled_img_cnt = find_contours(translated_and_scaled_img)[0]
+
+        translated_and_scaled_img_title = f"{translated_img_title}\n{scaled_img_title}"
+
+        return translated_and_scaled_img_cnt, translated_and_scaled_img_title
+
+    if translate_and_rotate_img:
+        translated_img, translated_img_title = translate(img)
+        translated_and_rotated_img, rotated_img_title = rotate(translated_img)
+
+        translated_and_rotated_img_cnt = find_contours(translated_and_rotated_img)[0]
+
+        translated_and_rotated_img_title = (
+            f"{translated_img_title}\n{rotated_img_title}"
+        )
+
+        return translated_and_rotated_img_cnt, translated_and_rotated_img_title
+
+    if translate_scale_and_rotate_img:
+        translated_img, translated_img_title = translate(img)
+        translated_and_scaled_img, scaled_img_title = scale(translated_img)
+        translated_scaled_and_rotated_img, rotated_img_title = rotate(
+            translated_and_scaled_img
+        )
+
+        translated_scaled_and_rotated_img_cnt = find_contours(
+            translated_scaled_and_rotated_img
+        )[0]
+
+        translated_scaled_and_rotated_img_title = (
+            f"{translated_img_title}\n{scaled_img_title}\n{rotated_img_title}"
+        )
+
+        return (
+            translated_scaled_and_rotated_img_cnt,
+            translated_scaled_and_rotated_img_title,
+        )
+
     if scale_img:
         scaled_img, scaled_img_title = scale(img)
+        scaled_img_cnt = find_contours(scaled_img)[0]
 
-        if plot_result:
-            matplotlib_imshow(scaled_img_title, scaled_img)
-
-        return scaled_img, scaled_img_title
+        return scaled_img_cnt, scaled_img_title
 
     if rotate_img:
         rotated_img, rotated_img_title = rotate(img)
-        if plot_result:
-            matplotlib_imshow(rotated_img_title, rotated_img)
+        rotated_img_cnt = find_contours(rotated_img)[0]
 
-        return rotated_img, rotated_img_title
-
-    if translate_img:
-        translated_img, translated_img_title = translate(img)
-        if plot_result:
-            matplotlib_imshow(translated_img_title, translated_img)
-
-        return translated_img, translated_img_title
+        return rotated_img_cnt, rotated_img_title
