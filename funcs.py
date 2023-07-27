@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 
 # converting color mode to RGB and displaying the image as matplotlib figure
 def matplotlib_imshow(
-    title="", img=None, fig_h=7, cv_colorspace_conversion_flag=cv.COLOR_BGR2RGB
+    img_title="", img=None, fig_h=5, cv_colorspace_conversion_flag=cv.COLOR_BGR2RGB
 ):
     """
     title: plot title (to be shown)
@@ -20,9 +20,9 @@ def matplotlib_imshow(
 
     # tinkering with size
     try:
-        img_width, img_height = img.shape[0], img.shape[1]
+        img_height, img_width = img.shape[0], img.shape[1]
         aspect_ratio = img_width / img_height
-        plt.figure(figsize=(fig_h * aspect_ratio, fig_h))
+        plt.figure(figsize=(fig_h, fig_h * aspect_ratio))
     except AttributeError:
         print(
             "None Type image. Correct_syntax is, matplotlib_imshow(img_title, img, fig_h, cv_colorspace_conversion_flag)."
@@ -30,7 +30,7 @@ def matplotlib_imshow(
 
     # actual code for displaying the image
     plt.imshow(cv.cvtColor(img, cv_colorspace_conversion_flag))
-    plt.title(title)
+    plt.title(img_title)
     plt.show()
 
 
@@ -48,13 +48,26 @@ def get_canvas(shape, color_code=(80)):
 # ------------------------------------------------------------
 
 
-def auto_canny(image, sigma=0.33):
+def auto_canny(image, sigma=0.33, apertureSize=3, L2gradient=False):
+    """
+    image: the source image (should be grayscale and of type np.uint8)
+    sigma: used for lower and upper threshold calculation (default is 0.33)
+    apertureSize: to be passed to the cv.Canny as apertureSize (default is 3)
+    L2gradient: formula to calculate image gradients (default is False)
+    """
+
     # compute the median of the single channel pixel intensities
     v = np.median(image)
     # apply automatic Canny edge detection using the computed median
     lower = int(max(0, (1.0 - sigma) * v))
     upper = int(min(255, (1.0 + sigma) * v))
-    edged = cv.Canny(image, lower, upper)
+    edged = cv.Canny(
+        image.astype(np.uint8),
+        lower,
+        upper,
+        apertureSize=apertureSize,
+        L2gradient=L2gradient,
+    )
     # return the edged image
     return edged
 

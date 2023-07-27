@@ -6,13 +6,13 @@ from imutils import rotate_bound
 
 
 def find_contours(img):
-    thresh_val, thresh_img = cv.threshold(img, 200, 255, cv.THRESH_BINARY)
-    cnt, hier = cv.findContours(thresh_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+    _, thresh_img = cv.threshold(img, 200, 255, cv.THRESH_BINARY)
+    cnt, _ = cv.findContours(thresh_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     return cnt
 
 
 def translate(img):
-    img_width, img_height = img.shape[:2]
+    img_height, img_width = img.shape[:2]
     Tx = int(np.random.randint(10, 50) / 100 * img_width)
     Ty = int(np.random.randint(10, 50) / 100 * img_height)
 
@@ -27,14 +27,16 @@ def translate(img):
 
 
 def scale(img):
-    img_w, img_h = img.shape[:2]
-    image_center = (img_w / 2), (img_h / 2)
+    img_h, img_w = img.shape[:2]
+    image_center = (img_w / 2), (
+        img_h / 2
+    )  # we need in this format because of opencv format
 
     scale_factor = round(random.uniform(0.6, 1), 2)
 
     transformation_matrix = cv.getRotationMatrix2D(image_center, 0, scale_factor)
 
-    scaled_img = cv.warpAffine(img, transformation_matrix, (img_w, 2 * img_h))
+    scaled_img = cv.warpAffine(img, transformation_matrix, (img_w, img_h)) 
     scaled_img_title = f"Scale factor: {scale_factor}"
 
     return scaled_img, scaled_img_title
